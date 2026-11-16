@@ -3,11 +3,33 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![CI](https://github.com/choco-technologies/dmnotify/actions/workflows/ci.yml/badge.svg)](https://github.com/choco-technologies/dmnotify/actions/workflows/ci.yml)
 
-dmnotify DMOD library module.
+The notifications of a DMOD system, as a device node.
 
 ## Description
 
-TODO: describe what this module does.
+dmnotify is a driver (dmdrvi): dmdevfs makes a node of it, `/dev/notify`. A module that has something to tell the user
+(a message came, a download is done, the battery is low) opens the node for writing and **notifies**. The interface of the device
+(a launcher, a status bar) opens it for reading, **subscribes** and is called with every notification - and with every one that is
+taken back.
+
+It is a driver on purpose: who may see the notifications and who may only send them is decided by the access rights of the
+node in the file system, so there is no second mechanism of privacy to keep.
+
+```
+  libmeshcore --NOTIFY--> +-------------+ --_on_notify--> phoneui (the home screen)
+  a shell ----write()---> | /dev/notify | --_on_cancel-->
+  meshcore ---CANCEL----> +-------------+ <--SUBSCRIBE---
+```
+
+- A notification is a brief, an optional message, its source (the name of a module), an optional icon, a privacy setting and
+  a channel. The source and the channel are its identity: the same source on the same channel replaces the notification, a
+  cancel names them.
+- The driver keeps the active notifications (`max_notifications`, 16 by default; one more cancels the oldest), so a subscriber
+  that comes later gets what is active at once.
+- A subscriber is a module that implements the DIF of `dmnotify.h` (`_on_notify`, optionally `_on_cancel`).
+- From a shell: `echo "Tea is ready" > /dev/notify` notifies, `cat /dev/notify` lists what is active.
+
+See [docs/README.md](docs/README.md) for the whole story and [docs/api-reference.md](docs/api-reference.md) for the reference.
 
 ## Building
 
@@ -66,25 +88,51 @@ dmod_loader build/dmf/test_dmnotify.dmf
 
 ## Usage
 
-<TBD>
+Add the node to the system (dmdevfs; `configs/notify.ini` is in the package):
 
-This library module provides functions that can be used by other modules:
-
-```c
-#include "dmnotify.h"
+```
+dmnotify driver=notify.ini
 ```
 
-## API
+Notify (a module that links `dmnotify` for its headers):
 
-| Function | Description |
-|----------|-------------|
-| `dmnotify_create()` | Create a new `dmnotify_t` instance. |
-| `dmnotify_destroy()` | Destroy an instance created by `_create()`. |
-| `dmnotify_is_valid()` | Check whether a handle is a valid instance. |
+```c
+#include "dmnotify_ioctl.h"
 
-See [include/dmnotify.h](include/dmnotify.h) for the full
-declarations and [docs/api-reference.md](docs/api-reference.md) for the
-complete reference.
+void* node = Dmod_FileOpen("/dev/notify", "w");
+dmnotify_notification_t n;
+memset(&n, 0, sizeof(n));
+n.source  = "meshcore";                         /* the module: the application a tap on the notification opens */
+n.channel = 3;                                  /* what it is about, for the source: here the index of a chat */
+n.brief   = "#test";
+n.message = "Marek: hello";
+n.privacy = dmnotify_privacy_private_message;   /* the message is not for a locked screen */
+Dmod_Ioctl(node, DMNOTIFY_IOCTL_CMD_NOTIFY, &n);
+/* ... the user has read it ... */
+Dmod_Ioctl(node, DMNOTIFY_IOCTL_CMD_CANCEL, &n);
+```
+
+Subscribe (the module `myui`):
+
+```c
+#define DMOD_ENABLE_REGISTRATION ON
+#include "dmnotify.h"
+#include "dmnotify_ioctl.h"
+
+dmod_dmnotify_dif_api_declaration(1.0, myui, void, _on_notify, ( const dmnotify_notification_t* notification ))
+{
+    /* called in the thread of whoever notifies: copy and return */
+}
+
+dmod_dmnotify_dif_api_declaration(1.0, myui, void, _on_cancel, ( const dmnotify_notification_t* notification ))
+{
+}
+
+void* node = Dmod_FileOpen("/dev/notify", "r");
+dmnotify_subscribe_t s;
+s.module_name = "myui";
+Dmod_Ioctl(node, DMNOTIFY_IOCTL_CMD_SUBSCRIBE, &s);    /* lasts until the file is closed */
+```
 
 ## Documentation
 

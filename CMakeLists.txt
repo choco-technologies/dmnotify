@@ -38,7 +38,7 @@ if(NOT _dmod_installed_sdk)
 endif()
 
 project(dmnotify VERSION ${DMOD_MODULE_VERSION}
-    DESCRIPTION "dmnotify DMOD library module"
+    DESCRIPTION "dmnotify - the notifications of the system as a device node"
     LANGUAGES C CXX)
 
 if(NOT _dmod_installed_sdk)
@@ -89,6 +89,7 @@ dmod_link_modules(${DMOD_MODULE_NAME}
     dmini
     dmdrvi
     dmlist
+    dmosi
 )
 
 enable_testing()
