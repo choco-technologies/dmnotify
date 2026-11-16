@@ -68,7 +68,7 @@ during the call.
 | | |
 |---|---|
 | `read` (open for reading) | The active notifications as text, the newest first, one a line: `source [channel]: brief - message`. |
-| `write` (open for writing) | The text is a public notification of the source `console` on channel 0 (the end of the line is dropped, at most 256 bytes are taken); an empty line cancels it. |
+| `write` (open for writing) | The text is a public notification of the source `console` on channel 0 (the end of the line is dropped, at most 256 bytes are taken); a write of only an end of line is ignored (a shell writes the text and its newline separately) - take it back with the ioctl. |
 
 ## Configuration (the .ini of the node)
 

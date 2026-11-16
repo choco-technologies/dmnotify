@@ -322,11 +322,14 @@ DMOD_TEST_STEP(a_text_written_to_the_node_is_a_notification)
     char text[64];
     read_all(file, text, sizeof(text));
     DMOD_TEST_EXPECT_STR_EQ(text, "console [0]: Tea is ready\n");
-    DMOD_TEST_EXPECT_EQ(g_write(g_node, file, "\n", 1, 0), 1);                /* an empty line takes it back */
+    DMOD_TEST_EXPECT_EQ(g_write(g_node, file, "\n", 1, 0), 1);                /* what a shell writes after the text: nothing happens */
+    DMOD_TEST_EXPECT_EQ(g_write(g_node, file, "", 0, 0), 0);
+    DMOD_TEST_EXPECT_EQ(told(), 1u);
+    read_all(file, text, sizeof(text));
+    DMOD_TEST_EXPECT_STR_EQ(text, "console [0]: Tea is ready\n");
+    DMOD_TEST_EXPECT_EQ(cancel(file, "console", 0), 0);                        /* the ioctl takes it back */
     DMOD_TEST_EXPECT_EQ(told(), 2u);
     DMOD_TEST_EXPECT_TRUE(g_records[1].cancel);
-    DMOD_TEST_EXPECT_EQ(g_write(g_node, file, "\n", 1, 0), 1);
-    DMOD_TEST_EXPECT_EQ(g_write(g_node, file, "", 0, 0), 0);
     read_all(file, text, sizeof(text));
     DMOD_TEST_EXPECT_STR_EQ(text, "");
     g_close(g_node, file);

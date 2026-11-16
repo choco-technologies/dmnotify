@@ -515,7 +515,8 @@ dmod_dmdrvi_dif_api_declaration(2.0, dmnotify, dmdrvi_ssize_t, _read, ( dmdrvi_c
  * @brief Write to a device
  *
  * A text written to the node is a notification of the source "console" on channel 0, public (echo "Tea is ready" > /dev/notify),
- * so a shell and a script can notify too. The end of the line is dropped; an empty text cancels that notification.
+ * so a shell and a script can notify too. The end of the line is dropped, and a write of nothing but an end of line is ignored
+ * (a shell writes the text and its \"\\n\" separately). Taking it back is the job of the ioctl.
  *
  * @param context DMDRVI context
  * @param handle Device handle
@@ -565,17 +566,17 @@ dmod_dmdrvi_dif_api_declaration(2.0, dmnotify, dmdrvi_ssize_t, _write, ( dmdrvi_
     notification.source  = DMNOTIFY_WRITE_SOURCE;
     notification.privacy = dmnotify_privacy_full_public;
     dmosi_mutex_lock( context->lock );
-    int result = -EDEADLK;
-    if( !context->dispatching )
+    int result = 0;
+    if( length > 0 )    // (a lone end of line is nothing: a shell writes the text and its "\n" separately)
     {
-        result = length > 0 ? handle_notify( context, &notification ) : handle_cancel( context, &notification );
+        result = -EDEADLK;
+        if( !context->dispatching )
+        {
+            result = handle_notify( context, &notification );
+        }
     }
     dmosi_mutex_unlock( context->lock );
     Dmod_Free( text );
-    if( result == -ENOENT )
-    {
-        result = 0;     // nothing to cancel
-    }
     return result == 0 ? (dmdrvi_ssize_t)size : result;
 }
 

@@ -55,7 +55,6 @@ The driver delivers every notification to every subscriber: obeying the setting 
 ```
 echo "Tea is ready" > /dev/notify     # a public notification of the source "console" on channel 0
 cat /dev/notify                       # the active notifications, the newest first: "source [channel]: brief - message"
-echo "" > /dev/notify                 # takes the one of the console back
 ```
 
 ## Configuration
