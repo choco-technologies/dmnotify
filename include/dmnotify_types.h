@@ -29,6 +29,15 @@ typedef enum
 
 //===============================================================================================
 /**
+ * @brief channel of the notification
+ * 
+ * The ID of the notification channel
+ */
+//===============================================================================================
+typedef uint32_t dmnotify_channel_t;
+
+//===============================================================================================
+/**
  * @brief stores notification data
  * 
  * The type is for storing of the notification data
