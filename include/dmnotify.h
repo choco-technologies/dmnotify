@@ -6,6 +6,7 @@
 #include <stddef.h>
 #include "dmod_types.h"
 #include "dmnotify_defs.h"
+#include "dmnotify_types.h"
 
 /**
  * Public API for the dmnotify module.
@@ -47,5 +48,7 @@ dmod_dmnotify_api(1.0, void, _destroy, ( dmnotify_t handle ));
  * @return true if handle is a valid, non-NULL instance.
  */
 dmod_dmnotify_api(1.0, bool, _is_valid, ( dmnotify_t handle ));
+
+dmod_dmnotify_dif(1.0, void, _on_notification, ( void* user_ptr ) );
 
 #endif // DMNOTIFY_H
