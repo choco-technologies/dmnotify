@@ -3,6 +3,7 @@
 #include "dmnotify.h"
 #include "dmdrvi.h"
 #include "dmlist.h"
+#include "dmnotify_ioctl.h"
 
 #define DMNOTIFY_MAGIC      0x6E6F7469
 
@@ -14,7 +15,8 @@
 //===============================================================================================
 struct dmdrvi_context
 {
-    uint32_t        magic;          //!< Magic number to check if the context is valid
+    uint32_t            magic;          //!< Magic number to check if the context is valid
+    dmlist_context_t*   subscriptions;  //!< List of module names of subscribers
 };
 
 /**
@@ -170,7 +172,6 @@ dmod_dmdrvi_dif_api_declaration(2.0, dmnotify, int, _stat, ( dmdrvi_context_t co
  */
 int dmod_init(const Dmod_Config_t *Config)
 {
-    Dmod_Printf("Hello, World!\n");
     return 0;
 }
 
@@ -185,6 +186,5 @@ int dmod_init(const Dmod_Config_t *Config)
  */
 int dmod_deinit(void)
 {
-    Dmod_Printf("Goodbye, World!\n");
     return 0;
 }

@@ -52,4 +52,14 @@ typedef struct
     dmnotify_privacy_t  privacy;        //!< Privacy setting for this notification
 } dmnotify_notification_t;
 
+//===============================================================================================
+/**
+ * @brief subscription configuration
+ */
+//===============================================================================================
+typedef struct 
+{
+    const char*         module_name;    //!< Name of the module that wants to receive the notifications
+} dmnotify_subscribe_t;
+
 #endif // DMNOTIFY_TYPES_H
