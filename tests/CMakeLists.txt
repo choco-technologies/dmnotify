@@ -1,7 +1,27 @@
-set(DMOD_MODULE_NAME        test_dmnotify)
+# ======================================================================
+#   test_listener - the subscriber of the tests (a library: see test_listener.h)
+# ======================================================================
+set(DMOD_MODULE_NAME        test_listener)
 set(DMOD_MODULE_VERSION     ${PROJECT_VERSION})
 set(DMOD_AUTHOR_NAME        "Patryk Kubiak")
 set(DMOD_STACK_SIZE         1024)
+set(DMOD_PRIORITY           0)
+
+dmod_add_library(${DMOD_MODULE_NAME} ${DMOD_MODULE_VERSION}
+    test_listener.c
+)
+
+target_include_directories(${DMOD_MODULE_NAME}_if INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(${DMOD_MODULE_NAME} dmnotify_if)
+dmod_link_modules(${DMOD_MODULE_NAME} dmdrvi dmini)
+
+# ======================================================================
+#   test_dmnotify - the tests
+# ======================================================================
+set(DMOD_MODULE_NAME        test_dmnotify)
+set(DMOD_MODULE_VERSION     ${PROJECT_VERSION})
+set(DMOD_AUTHOR_NAME        "Patryk Kubiak")
+set(DMOD_STACK_SIZE         4096)
 set(DMOD_PRIORITY           0)
 
 dmod_add_test(${DMOD_MODULE_NAME} ${DMOD_MODULE_VERSION}
@@ -12,7 +32,9 @@ target_include_directories(${DMOD_MODULE_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/../include
 )
 
-target_link_libraries(${DMOD_MODULE_NAME} dmnotify_if)
+target_link_libraries(${DMOD_MODULE_NAME} dmnotify_if test_listener_if)
+
+dmod_link_modules(${DMOD_MODULE_NAME} dmdrvi dmini)
 
 # Register the test module with ctest - this replays the same two steps CI
 # runs (see .github/templates/ci.yml.template): install the test module's
